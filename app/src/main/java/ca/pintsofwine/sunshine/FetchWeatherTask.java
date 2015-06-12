@@ -1,7 +1,9 @@
 package ca.pintsofwine.sunshine;
 
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 
@@ -26,9 +28,17 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
     private static final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
     private final ForecastFragment forecastFragment;
+    private final SharedPreferences prefs;
+    private final String imperialValue;
+    private final String metricValue;
+    private final String temperatureUnitKey;
 
     public FetchWeatherTask(ForecastFragment forecastFragment) {
         this.forecastFragment = forecastFragment;
+        this.prefs = PreferenceManager.getDefaultSharedPreferences(forecastFragment.getActivity());
+        this.imperialValue = forecastFragment.getString(R.string.imperial);
+        this.metricValue = forecastFragment.getString(R.string.metric);
+        this.temperatureUnitKey = forecastFragment.getString(R.string.pref_unit_key);
     }
 
     @Override
@@ -140,6 +150,11 @@ public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
         // For presentation, assume the user doesn't care about tenths of a degree.
         long roundedHigh = Math.round(high);
         long roundedLow = Math.round(low);
+
+        if (prefs.getString(temperatureUnitKey, metricValue).equals(imperialValue)) {
+            roundedHigh = Math.round(roundedHigh * 1.8 + 32);
+            roundedLow = Math.round(roundedLow * 1.8 + 32);
+        }
 
         String highLowStr = roundedHigh + "/" + roundedLow;
         return highLowStr;
